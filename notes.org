@@ -1,0 +1,45 @@
+* test csrf tokens
+
+#+begin_quote
+ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
+  localhost:8000/api/csrf/restore \
+  |jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: _csrf=RYf3m1rhk8d3M_kIpDX5yEy7; Path=/; HttpOnly
+  Set-Cookie: XSRF-TOKEN=N8MIUJxU-JpMmXFkLhllv9BP8j4OCM8rL7VY; Path=/
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 53
+  ETag: W/"35-AhfVMa7YzOf2bUgBoj3ys2I5zr8"
+  Date: Thu, 31 Oct 2024 04:25:55 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "XSRF-Token": "N8MIUJxU-JpMmXFkLhllv9BP8j4OCM8rL7VY"
+}
+ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
+  localhost:8000/api/test \
+  --post-data='{"hello":"world"}' \
+  --header="Content-Type: application/json" \
+  --header="XSRF-TOKEN: N8MIUJxU-JpMmXFkLhllv9BP8j4OCM8rL7VY" \
+  --header="Cookie: _csrf=RYf3m1rhk8d3M_kIpDX5yEy7; XSRF-TOKEN=N8MIUJxU-JpMmXFkLhllv9BP8j4OCM8rL7VY" \
+  | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 33
+  ETag: W/"21-Af/1Tl4sZsEccqgKMljFWEmvsJ8"
+  Date: Thu, 31 Oct 2024 04:27:19 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "requestBody": {
+    "hello": "world"
+  }
+}
+ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$
+#+end_quote
