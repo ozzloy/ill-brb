@@ -632,6 +632,10 @@ will go to the next middleware if there is a session user present
 there. If there is no session user, then an error will be created and
 passed along to the error-handling middlewares.
 
+danny note:
+
+this code doesn't do what the instructions above say.
+
 ```js
 // backend/utils/auth.js
 // ...
@@ -646,6 +650,30 @@ const requireAuth = function (req, _res, next) {
   err.status = 401;
   return next(err);
 }
+```
+
+danny note:
+
+the following code does do what the instructions above say to do:
+
+```js
+// backend/utils/auth.js
+// ...
+
+const requireAuth = [
+  // First middleware - restores user from JWT
+  restoreUser,
+  // Second middleware - checks for authentication
+  function (req, _res, next) {
+    if (req.user) return next();
+
+    const err = new Error('Authentication required');
+    err.title = 'Authentication required';
+    err.errors = { message: 'Authentication required' };
+    err.status = 401;
+    return next(err);
+  }
+];
 ```
 
 `requireAuth` will be connected directly to route handlers where there

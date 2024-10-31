@@ -1,7 +1,7 @@
 * test csrf tokens
 
 #+begin_quote
-ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
+$ wget \
   localhost:8000/api/csrf/restore \
   |jq "."
   HTTP/1.1 200 OK
@@ -19,7 +19,8 @@ ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
 {
   "XSRF-Token": "N8MIUJxU-JpMmXFkLhllv9BP8j4OCM8rL7VY"
 }
-ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
+
+$ wget \
   localhost:8000/api/test \
   --post-data='{"hello":"world"}' \
   --header="Content-Type: application/json" \
@@ -41,5 +42,135 @@ ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
     "hello": "world"
   }
 }
-ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$
+#+end_quote
+
+* test jwt session persistence
+#+begin_quote
+# create cookie for jwt (also csrf, but that's not what's being tested)
+$ wget \
+> http://localhost:8000/api/set-token-cookie \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: _csrf=0fq7rZnQsC6ygwkvWzb8YvTY; Path=/; HttpOnly
+  Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQwODUyOCwiZXhwIjoxNzMxMDEzMzI4fQ.iRnHDkU-H3jB0EV-hT-nX3aqcP_1ctLFGwNXJdylS0k; Max-Age=604800; Path=/; Expires=Thu, 07 Nov 2024 21:02:08 GMT; HttpOnly
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 42
+  ETag: W/"2a-1pZ1p97mMwN3w5Wt5ukYRivp8T0"
+  Date: Thu, 31 Oct 2024 21:02:08 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "user": {
+    "id": 1,
+    "username": "Demo-lition"
+  }
+}
+
+# good request
+$ wget \
+> http://localhost:8000/api/restore-user \
+> --header="Cookie: _csrf=0fq7rZnQsC6ygwkvWzb8YvTY; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQwODUyOCwiZXhwIjoxNzMxMDEzMzI4fQ.iRnHDkU-H3jB0EV-hT-nX3aqcP_1ctLFGwNXJdylS0k" \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 138
+  ETag: W/"8a-1c4brGMElzrZ55Pim/I/6adIG7k"
+  Date: Thu, 31 Oct 2024 21:06:29 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "id": 1,
+  "username": "Demo-lition",
+  "email": "demo@example.com",
+  "createdAt": "2024-10-31T19:53:01.465Z",
+  "updatedAt": "2024-10-31T19:53:01.465Z"
+}
+
+# bad request, jwt token is bad
+$ wget \
+> http://localhost:8000/api/restore-user \
+> --header="Cookie: _csrf=0fq7rZnQsC6ygwkvWzb8YvTY; token=bad.jwt.token" \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 4
+  ETag: W/"4-K+iMpCQsduglOsYkdIUQZQMtaDM"
+  Date: Thu, 31 Oct 2024 21:31:26 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+null
+#+end_quote
+
+* test requireAuth middleware
+#+begin_quote
+# set new token cookie
+$ wget \
+> http://localhost:8000/api/set-token-cookie \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: _csrf=E4u1QIkRx-BdKZRcajR0JRBR; Path=/; HttpOnly
+  Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQxMDU3MywiZXhwIjoxNzMxMDE1MzczfQ.sprKDmAykeC9lwqlM5nW3IiymCnrj_unRAQoQXvekhE; Max-Age=604800; Path=/; Expires=Thu, 07 Nov 2024 21:36:13 GMT; HttpOnly
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 42
+  ETag: W/"2a-1pZ1p97mMwN3w5Wt5ukYRivp8T0"
+  Date: Thu, 31 Oct 2024 21:36:13 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "user": {
+    "id": 1,
+    "username": "Demo-lition"
+  }
+}
+
+# do a get with authorization cookie set
+$ wget \
+> http://localhost:8000/api/require-auth \
+> --header="Cookie: _csrf=E4u1QIkRx-BdKZRcajR0JRBR; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQxMDU3MywiZXhwIjoxNzMxMDE1MzczfQ.sprKDmAykeC9lwqlM5nW3IiymCnrj_unRAQoQXvekhE" \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 138
+  ETag: W/"8a-1c4brGMElzrZ55Pim/I/6adIG7k"
+  Date: Thu, 31 Oct 2024 21:37:47 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "id": 1,
+  "username": "Demo-lition",
+  "email": "demo@example.com",
+  "createdAt": "2024-10-31T19:53:01.465Z",
+  "updatedAt": "2024-10-31T19:53:01.465Z"
+}
+
+# do a get without authorization cookie set
+$ wget \
+> http://localhost:8000/api/require-auth \
+> --header="Cookie: _csrf=E4u1QIkRx-BdKZRcajR0JRBR;" \
+> | jq "."
+  HTTP/1.1 401 Unauthorized
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 1295
+  ETag: W/"50f-5KeKBRVjT0TQo2LwRSeguh5NGUY"
+  Date: Thu, 31 Oct 2024 21:38:16 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
 #+end_quote
