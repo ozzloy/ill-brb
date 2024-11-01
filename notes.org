@@ -616,3 +616,129 @@ $ wget \
     #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
     #}
 #+end_src
+
+* test the signup validation
+#+begin_src bash
+  # make a session
+  wget http://localhost:8000/api/csrf/restore | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: _csrf=MeNC9Tzvezo9T01_7fxe9c53; Path=/; HttpOnly
+    #  Set-Cookie: XSRF-TOKEN=GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI; Path=/
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 53
+    #  ETag: W/"35-QjHbl1Q1pvDFmLKVrDzWvObGgQI"
+    #  Date: Fri, 01 Nov 2024 20:35:16 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "XSRF-Token": "GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI"
+    #}
+  # reject empty password, no username signup
+  wget \
+      localhost:8000/api/users \
+      --post-data="{\"email\":\"firestar@example.com\",\"password\":\"\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI" \
+      --header="Cookie: _csrf=MeNC9Tzvezo9T01_7fxe9c53; XSRF-TOKEN=GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 876
+    #  ETag: W/"36c-opoVUbE5fUBmREljSVMsR3gjL6c"
+    #  Date: Fri, 01 Nov 2024 20:39:40 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "username": "Please provide a username with at least 4 characters.",
+    #    "password": "Password must be 6 characters or more."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+  # reject empty password signup
+  wget \
+      localhost:8000/api/users \
+      --post-data="{\"email\":\"firestar@example.com\",\"password\":\"\",\"username\":\"firestar\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI" \
+      --header="Cookie: _csrf=MeNC9Tzvezo9T01_7fxe9c53; XSRF-TOKEN=GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 809
+    #  ETag: W/"329-3DgPqDlnGgjfLglrWGYW7DZtmKk"
+    #  Date: Fri, 01 Nov 2024 20:42:11 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "password": "Password must be 6 characters or more."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+  # reject email field is non email
+  wget \
+      localhost:8000/api/users \
+      --post-data="{\"email\":\"firestar@example\",\"password\":\"6 characters or more\",\"username\":\"firestar\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI" \
+      --header="Cookie: _csrf=MeNC9Tzvezo9T01_7fxe9c53; XSRF-TOKEN=GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 797
+    #  ETag: W/"31d-Q7wiSx8OeGwaLfDwEOJHF+ecBPA"
+    #  Date: Fri, 01 Nov 2024 20:45:48 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "email": "Please provide a valid email."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+  # reject username field is email
+  wget \
+      localhost:8000/api/users \
+      --post-data="{\"email\":\"firestar@example.com\",\"password\":\"6 characters or more\",\"username\":\"firestarter@example.com\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI" \
+      --header="Cookie: _csrf=MeNC9Tzvezo9T01_7fxe9c53; XSRF-TOKEN=GYKAK1ux-jOWAk9t4Xghq6rI3L2Q2ub0y8TI;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 799
+    #  ETag: W/"31f-8lu3Vn5gB02m8c1AXn43W65jozo"
+    #  Date: Fri, 01 Nov 2024 20:54:24 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "username": "Username cannot be an email."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+#+end_src
