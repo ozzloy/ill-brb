@@ -174,3 +174,127 @@ $ wget \
   Connection: keep-alive
   Keep-Alive: timeout=5
 #+end_quote
+
+* test login
+
+browse to http://localhost:8000/api/csrf/restore
+
+get XSRF-Token: 9tfXLRm4-7qtVi1UUHVWm4FGqcTocs7LxGtQ
+
+#+begin_src js
+  const xsrfToken = "9tfXLRm4-7qtVi1UUHVWm4FGqcTocs7LxGtQ";
+  const foo = await fetch('/api/session', {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+      "XSRF-TOKEN": xsrfToken,
+    },
+    body: JSON.stringify({ credential: 'Demo-lition', password: 'password' })
+  })
+  const bar = await foo.json();
+  console.log(bar);
+#+end_src
+
+#+begin_quote
+$ wget http://localhost:8000/api/csrf/restore | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: _csrf=Eqqiv95WWUKkT-TN3w_LLq8B; Path=/; HttpOnly
+  Set-Cookie: XSRF-TOKEN=fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc; Path=/
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 53
+  ETag: W/"35-IIkgCdIsuzhDSgTzh6saq8FyjAw"
+  Date: Thu, 31 Oct 2024 23:08:49 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "XSRF-Token": "fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc"
+}
+
+# no csrf token cookie
+$ wget \
+> "http://localhost:8000/api/session" \
+> --post-data="{\"credential\":\"Demo-lition\",\"password\":\"password\"}"
+  HTTP/1.1 403 Forbidden
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  set-cookie: _csrf=FaPiUZCkyAbJ4C1_FXNTr4VE; Path=/; HttpOnly
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 1260
+  ETag: W/"4ec-Srf6qQ43P56aTOOoqAshFiP4O5s"
+  Date: Thu, 31 Oct 2024 23:10:11 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{"title":"Server Error","message":"invalid csrf token","stack":"ForbiddenError: invalid csrf token\n    at csrf (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/csurf/index.js:112:19)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:280:10)\n    at crossOriginResourcePolicyMiddleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/helmet/index.cjs:171:3)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)"}ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ 
+
+# no xsrf header
+$ wget \
+> "http://localhost:8000/api/session" \
+> --post-data="{\"credential\":\"Demo-lition\",\"password\":\"password\"}" \
+> --header="Cookie: _csrf=Eqqiv95WWUKkT-TN3w_LLq8B; XSRF-TOKEN=fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc;" \
+> | jq "."
+  HTTP/1.1 403 Forbidden
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 1260
+  ETag: W/"4ec-Srf6qQ43P56aTOOoqAshFiP4O5s"
+  Date: Thu, 31 Oct 2024 23:12:47 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "title": "Server Error",
+  "message": "invalid csrf token",
+  "stack": "ForbiddenError: invalid csrf token\n    at csrf (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/csurf/index.js:112:19)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/index.js:280:10)\n    at crossOriginResourcePolicyMiddleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/helmet/index.cjs:171:3)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)"
+}
+
+# correct.  has XSRF-TOKEN header, csrf cookie, and xsrf cookie
+ozzloy@trent-reznor:~/app-academy/src/ill-brb/backend$ wget \
+> "http://localhost:8000/api/session" \
+> --post-data="{\"credential\":\"Demo-lition\",\"password\":\"password\"}" \
+> --header="Content-Type: application/json" \
+> --header="XSRF-TOKEN: fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc" \
+> --header="Cookie: _csrf=Eqqiv95WWUKkT-TN3w_LLq8B; XSRF-TOKEN=fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc;" \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJlbWFpbCI6ImRlbW9AZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQxNjUxMCwiZXhwIjoxNzMxMDIxMzEwfQ.gwc35YYbSIrZRaud3P8C6e4SDX9aDfD3D8P6yssLaCQ; Max-Age=604800; Path=/; Expires=Thu, 07 Nov 2024 23:15:10 GMT; HttpOnly
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 69
+  ETag: W/"45-u2OQyG56y80snQbKitSlZ5nJ6Cw"
+  Date: Thu, 31 Oct 2024 23:15:10 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "user": {
+    "id": 1,
+    "email": "demo@example.com",
+    "username": "Demo-lition"
+  }
+}
+
+# incorrect password
+$ wget \
+> "http://localhost:8000/api/session" \
+> --post-data="{\"credential\":\"demo@example.com\",\"password\":\"wrong password\"}" \
+> --header="Content-Type: application/json" \
+> --header="XSRF-TOKEN: fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc" \
+> --header="Cookie: _csrf=Eqqiv95WWUKkT-TN3w_LLq8B; XSRF-TOKEN=fhnig0Wt-5oH7lyh7c5ZOV2ZWuxQl8SKctlc;" \
+> | jq "."
+  HTTP/1.1 401 Unauthorized
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 225
+  ETag: W/"e1-yhw9pDN/jIkKa95BOMBsUTOBcas"
+  Date: Fri, 01 Nov 2024 01:28:01 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+#+end_quote
