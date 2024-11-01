@@ -445,3 +445,91 @@ $ wget \
     #  }
     #}
 #+end_src
+
+* get session user
+#+begin_src bash
+  # no user currently logged in
+  wget http://localhost:8000/api/session | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  set-cookie: _csrf=2uzx3o4FB29s0VRXv_VwJHYp; Path=/; HttpOnly
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 13
+    #  ETag: W/"d-O3i+ap2cff5bxhPRN8PyzcjObvA"
+    #  Date: Fri, 01 Nov 2024 18:13:14 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "user": null
+    #}
+
+  # get session
+  wget http://localhost:8000/api/csrf/restore | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: _csrf=xWM8oQoZ8vlRkdGFYMU5jls4; Path=/; HttpOnly
+    #  Set-Cookie: XSRF-TOKEN=gfXB8loA-7dmEFEjamin2GsEnXVILA7ss1MY; Path=/
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 53
+    #  ETag: W/"35-3IthnfUsMh/qt83qwg4kZKWubKw"
+    #  Date: Fri, 01 Nov 2024 18:56:52 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "XSRF-Token": "gfXB8loA-7dmEFEjamin2GsEnXVILA7ss1MY"
+    #}
+  # log in
+  wget \
+      "http://localhost:8000/api/session" \
+      --post-data="{\"credential\":\"Demo-lition\",\"password\":\"password\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: gfXB8loA-7dmEFEjamin2GsEnXVILA7ss1MY" \
+      --header="Cookie: _csrf=xWM8oQoZ8vlRkdGFYMU5jls4; XSRF-TOKEN=gfXB8loA-7dmEFEjamin2GsEnXVILA7ss1MY;" \
+      | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJlbWFpbCI6ImRlbW9AZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQ4Nzc4MywiZXhwIjoxNzMxMDkyNTgzfQ.1DDHvERCC8KJIbXesTFPtYpvET8cqQHXk792VBu_arw; Max-Age=604800; Path=/; Expires=Fri, 08 Nov 2024 19:03:03 GMT; HttpOnly
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 69
+    #  ETag: W/"45-u2OQyG56y80snQbKitSlZ5nJ6Cw"
+    #  Date: Fri, 01 Nov 2024 19:03:03 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "user": {
+    #    "id": 1,
+    #    "email": "demo@example.com",
+    #    "username": "Demo-lition"
+    #  }
+    #}
+  # check session, use jwt from request just above, see user in reply
+  wget \
+      "http://localhost:8000/api/session" \
+      --header="XSRF-TOKEN: gfXB8loA-7dmEFEjamin2GsEnXVILA7ss1MY" \
+      --header="Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoxLCJlbWFpbCI6ImRlbW9AZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IkRlbW8tbGl0aW9uIn0sImlhdCI6MTczMDQ4Nzc4MywiZXhwIjoxNzMxMDkyNTgzfQ.1DDHvERCC8KJIbXesTFPtYpvET8cqQHXk792VBu_arw;" \
+      | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  set-cookie: _csrf=fFdTaoRmS-SBytM2GpMlvoq9; Path=/; HttpOnly
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 69
+    #  ETag: W/"45-u2OQyG56y80snQbKitSlZ5nJ6Cw"
+    #  Date: Fri, 01 Nov 2024 19:25:49 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "user": {
+    #    "id": 1,
+    #    "email": "demo@example.com",
+    #    "username": "Demo-lition"
+    #  }
+    #}
+#+end_src
