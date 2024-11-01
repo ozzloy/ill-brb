@@ -298,3 +298,46 @@ $ wget \
   Connection: keep-alive
   Keep-Alive: timeout=5
 #+end_quote
+
+* logout test
+#+begin_quote
+# create session tokens
+$ wget http://localhost:8000/api/csrf/restore | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: _csrf=TSDi7OpXnqd4nL9n7AyHOwYB; Path=/; HttpOnly
+  Set-Cookie: XSRF-TOKEN=peWe99qx-J0d0rJjs7ECyRyrmXvQiVDghvaE; Path=/
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 53
+  ETag: W/"35-HXPzTKVDxK037yZSThAUq4UYJ3M"
+  Date: Fri, 01 Nov 2024 01:33:54 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "XSRF-Token": "peWe99qx-J0d0rJjs7ECyRyrmXvQiVDghvaE"
+}
+
+# log out
+$ wget \
+> http://localhost:8000/api/session \
+> --method=DELETE \
+> --header="XSRF-TOKEN: peWe99qx-J0d0rJjs7ECyRyrmXvQiVDghvaE" \
+> --header="Cookie: _csrf=TSDi7OpXnqd4nL9n7AyHOwYB; XSRF-TOKEN=peWe99qx-J0d0rJjs7ECyRyrmXvQiVDghvaE;" \
+> | jq "."
+  HTTP/1.1 200 OK
+  X-Powered-By: Express
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Resource-Policy: cross-origin
+  Set-Cookie: token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+  Content-Type: application/json; charset=utf-8
+  Content-Length: 21
+  ETag: W/"15-ga8EF/lp+ThIsc8w/OHbk4hPrME"
+  Date: Fri, 01 Nov 2024 01:37:49 GMT
+  Connection: keep-alive
+  Keep-Alive: timeout=5
+{
+  "message": "success"
+}
+#+end_quote
