@@ -1,3 +1,13 @@
+set up wget config
+
+put this content in =~/.wgetrc=,
+#+begin_quote
+output_document = -
+quiet = on
+server_response = on
+verbose = off
+content_on_error = on
+#+end_quote
 * test csrf tokens
 
 #+begin_quote
@@ -531,5 +541,78 @@ $ wget \
     #    "email": "demo@example.com",
     #    "username": "Demo-lition"
     #  }
+    #}
+#+end_src
+
+* test login validation
+#+begin_src bash
+  # get a session first
+  wget http://localhost:8000/api/csrf/restore | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: _csrf=9iZYb577ZxdSRV2dppqctCCx; Path=/; HttpOnly
+    #  Set-Cookie: XSRF-TOKEN=7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc; Path=/
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 53
+    #  ETag: W/"35-92qd4FY835QZ2Y5hw2L2LeQFFw8"
+    #  Date: Fri, 01 Nov 2024 20:14:20 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "XSRF-Token": "7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc"
+    #}
+  # validation correctly rejects empty username
+  wget \
+      http://localhost:8000/api/session \
+      --post-data="{\"credential\":\"\",\"password\":\"password\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: 7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc" \
+      --header="Cookie: _csrf=9iZYb577ZxdSRV2dppqctCCx; XSRF-TOKEN=7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 814
+    #  ETag: W/"32e-rh6gPYJP/YlcUQ5LFAkqf6niHQA"
+    #  Date: Fri, 01 Nov 2024 20:21:11 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "credential": "Please provide a valid email or username."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+  # validation correctly rejects empty password
+  wget \
+      http://localhost:8000/api/session \
+      --post-data="{\"credential\":\"Demo-lition\",\"password\":\"\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: 7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc" \
+      --header="Cookie: _csrf=9iZYb577ZxdSRV2dppqctCCx; XSRF-TOKEN=7c36HMVo-dVZzXQF_H8uIHp0OicYjiv-mFNc;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 797
+    #  ETag: W/"31d-97uRh+DLjlCxBAjn8WPc5QrIyhU"
+    #  Date: Fri, 01 Nov 2024 20:23:43 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "password": "Please provide a password."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
     #}
 #+end_src
