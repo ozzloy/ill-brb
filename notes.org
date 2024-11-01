@@ -742,3 +742,79 @@ $ wget \
     #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
     #}
 #+end_src
+
+* test firstName and lastName
+#+begin_src bash
+  # establish session
+  wget http://localhost:8000/api/csrf/restore | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: _csrf=-P0CKSKCfwFbw_tz68CqcIuM; Path=/; HttpOnly
+    #  Set-Cookie: XSRF-TOKEN=2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s; Path=/
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 53
+    #  ETag: W/"35-MrtVS4xhsnOfuTjq17m8BYB2yyk"
+    #  Date: Fri, 01 Nov 2024 21:48:11 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "XSRF-Token": "2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s"
+    #}
+  # validation correctly rejects no first and last name
+  wget \
+      http://localhost:8000/api/users \
+      --post-data="{\"username\":\"reallycoolusername\",\"password\":\"6 characters or more\",\"email\":\"a@example.com\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: 2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s" \
+      --header="Cookie: _csrf=-P0CKSKCfwFbw_tz68CqcIuM; XSRF-TOKEN=2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s;" \
+      | jq "."
+    #  HTTP/1.1 400 Bad Request
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 893
+    #  ETag: W/"37d-oPkhCN6+uqkQuhnw9W88BnBocik"
+    #  Date: Fri, 01 Nov 2024 21:49:41 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "title": "Bad request.",
+    #  "message": "Bad request.",
+    #  "errors": {
+    #    "firstName": "Please provide a first name with at least 1 character.",
+    #    "lastName": "Please provide a last name with at least 1 character."
+    #  },
+    #  "stack": "Error: Bad request.\n    at handleValidationErrors (/home/ozzloy/app-academy/src/ill-brb/backend/utils/validation.js:14:17)\n    at newFn (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-async-errors/index.js:16:20)\n    at Layer.handle [as handle_request] (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/ozzloy/app-academy/src/ill-brb/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+    #}
+  # accept user with username, password, email, first, last name
+  wget \
+      http://localhost:8000/api/users \
+      --post-data="{\"username\":\"reallycoolusername\",\"password\":\"6 characters or more\",\"email\":\"a@example.com\",\"firstName\":\"a\",\"lastName\":\"b\"}" \
+      --header="Content-Type: application/json" \
+      --header="XSRF-TOKEN: 2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s" \
+      --header="Cookie: _csrf=-P0CKSKCfwFbw_tz68CqcIuM; XSRF-TOKEN=2HvuWjVZ-mTv_vrfrvIDpY8wyFbCAOpUAm-s;" \
+      | jq "."
+    #  HTTP/1.1 200 OK
+    #  X-Powered-By: Express
+    #  Access-Control-Allow-Origin: *
+    #  Cross-Origin-Resource-Policy: cross-origin
+    #  Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjo0LCJlbWFpbCI6ImFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6InJlYWxseWNvb2x1c2VybmFtZSJ9LCJpYXQiOjE3MzA0OTc4NjIsImV4cCI6MTczMTEwMjY2Mn0.p3N_Q9ydef2IXlnt0TzYUiuerladpADf1xfd0jDTV1I; Max-Age=604800; Path=/; Expires=Fri, 08 Nov 2024 21:51:02 GMT; HttpOnly
+    #  Content-Type: application/json; charset=utf-8
+    #  Content-Length: 104
+    #  ETag: W/"68-MyR5tKvvpyANzKIfbCCi3N+dZjs"
+    #  Date: Fri, 01 Nov 2024 21:51:02 GMT
+    #  Connection: keep-alive
+    #  Keep-Alive: timeout=5
+    #{
+    #  "user": {
+    #    "id": 4,
+    #    "email": "a@example.com",
+    #    "username": "reallycoolusername",
+    #    "firstName": "a",
+    #    "lastName": "b"
+    #  }
+    #}
+#+end_src
